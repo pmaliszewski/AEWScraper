@@ -9,6 +9,10 @@ NAME_PREFIX = "Name of the event:"
 DATE_PREFIX = "Date:"
 
 
+class UnknownMatchError(ValueError):
+    pass
+
+
 @dataclass
 class Participant:
     name: str
@@ -18,9 +22,9 @@ class Participant:
 @dataclass
 class Match:
     stipulation: str
-    winning_side: List[Participant]
-    losing_side: List[Participant]
-    draw: bool
+    winning_side: Optional[List[Participant]]
+    losing_side: Optional[List[Participant]]
+    draw: bool = False
 
 
 @dataclass

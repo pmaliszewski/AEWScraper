@@ -1,8 +1,8 @@
 import datetime
-from typing import List, Optional
+from itertools import product
+from typing import List, Optional, Tuple
 
-import bs4.element
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer, element
 from selenium import webdriver
 
 from constants import (
@@ -12,6 +12,8 @@ from constants import (
     NAME_PREFIX,
     DATE_PREFIX,
     Match,
+    UnknownMatchError,
+    Participant,
 )
 
 
@@ -42,12 +44,51 @@ def _grab_event_links(driver: webdriver.Chrome) -> List[str]:
     return event_links
 
 
-def _parse_match(match: bs4.element.Tag) -> Match:
-    pass
+def _parse_result(
+    result: element.Tag,
+) -> Tuple[List[Participant], List[Participant], bool]:
+    # TODO: some fuckery required
+    result_text = result.text
+    winning_side, losing_side = [], []
+    draw = False
+    if " defeats " in result_text:
+        result_text = result_text.split(" defeats ")
+    elif " defeat " in result_text:
+        result_text = result_text.split(" defeat ")
+    elif " vs. " in result_text:
+        result_text = result_text.split(" vs. ")
+        draw = True
+    else:
+        raise UnknownMatchError()
+
+    all_links = [
+        link
+        for link in BeautifulSoup(result, parse_only=SoupStrainer("a"))
+        if link.has_attr("href")
+    ]
+
+    for i in range(2):
+        side = result_text[i]
+        pass
+
+
+def _parse_match(match: element.Tag) -> Match:
+    stipulation = match.find("div", {"class": "MatchType"}).text
+    result = match.find("div", {"class": "MatchResults"})
+    try:
+        parsed_result = _parse_result(result)
+    except UnknownMatchError:
+        return Match(
+            stipulation=f"Error during parsing: {result.text}",
+            winning_side=None,
+            losing_side=None,
+        )
+
+    print(result)
 
 
 def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
-    name, date = None, None
+    title, date = None, None
 
     driver.get(CAGEMATCH_SITE + event_link)
     soup = BeautifulSoup(driver.page_source)
@@ -55,18 +96,18 @@ def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
     for item in info_box:
         tag_text = item.text.strip()
         if tag_text.startswith(NAME_PREFIX):
-            name = tag_text[len(NAME_PREFIX) :]
+            title = tag_text[len(NAME_PREFIX) :]
         if tag_text.startswith(DATE_PREFIX):
             date = datetime.datetime.strptime(tag_text[len(DATE_PREFIX) :], "%d.%m.%Y")
 
-    if not name or not date or date > datetime.datetime.today():
+    if not title or not date or date > datetime.datetime.today():
         return None
 
     matches = [
         _parse_match(match) for match in soup.find_all("div", {"class": "Match"})
     ]
 
-    return Event(name, date, matches)
+    return Event(title=title, date=date, matches=matches)
 
 
 def parse_events(driver: webdriver.Chrome) -> List[Event]:
