@@ -1,8 +1,7 @@
 import datetime
-from itertools import product
 from typing import List, Optional, Tuple
 
-from bs4 import BeautifulSoup, SoupStrainer, element
+from bs4 import BeautifulSoup, element
 from selenium import webdriver
 
 from constants import (
@@ -61,11 +60,7 @@ def _parse_result(
     else:
         raise UnknownMatchError()
 
-    all_links = [
-        link
-        for link in BeautifulSoup(result, parse_only=SoupStrainer("a"))
-        if link.has_attr("href")
-    ]
+    all_links = [link for link in result.find_all("a") if link.has_attr("href")]
 
     for i in range(2):
         side = result_text[i]
