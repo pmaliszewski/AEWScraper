@@ -1,4 +1,5 @@
 import datetime
+import re
 from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup, element
@@ -43,13 +44,56 @@ def _grab_event_links(driver: webdriver.Chrome) -> List[str]:
     return event_links
 
 
+def _clean_up_side(side: str) -> List[str]:
+    output = []
+
+    # sanity check
+    side = side.rstrip()
+
+    # split multiple wrestlers
+    if any(character in side for character in ",&"):
+        side = re.split(r"[,&]", side)
+
+    if " and " in side:
+        side = side.split(" and ")
+
+    # remove tag team names
+    if isinstance(side, list):
+        accumulator = []
+        for item in side:
+            if "(" in item:
+                accumulator.append(item[item.find("(") + 1 :].lstrip().rstrip())
+            elif ")" in item:
+                accumulator.append(item[: item.find(")")].lstrip().rstrip())
+            else:
+                accumulator.append(item.lstrip().rstrip())
+        output.extend(accumulator)
+
+    if isinstance(side, str):
+        output = [side]
+
+    return output
+
+
 def _parse_result(
     result: element.Tag,
 ) -> Tuple[List[Participant], List[Participant], bool]:
-    # TODO: some fuckery required
     result_text = result.text
     winning_side, losing_side = [], []
     draw = False
+
+    # remove managers
+    result_text = re.sub(r"\(w\.*\)", "", result_text)
+
+    # remove time
+    result_text = re.sub(r"\([0-9]*:[0-9]*\)", "", result_text)
+
+    # remove title change and champion annotation
+    result_text = result_text.replace(" - TITLE CHANGE !!!", "")
+    result_text = result_text.replace("(c)", "")
+
+    result_text = result_text.rstrip()
+
     if " defeats " in result_text:
         result_text = result_text.split(" defeats ")
     elif " defeat " in result_text:
@@ -115,4 +159,4 @@ def parse_events(driver: webdriver.Chrome) -> List[Event]:
     return events
 
 
-parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))
+# parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))
