@@ -88,6 +88,37 @@ def _find_id(name: str, links: List[element.Tag]) -> Optional[int]:
     return None
 
 
+def _erase_annotations(text: str) -> str:
+    # remove managers
+    text = re.sub(r"\(w/.*?\)", "", text)
+
+    # remove time
+    text = re.sub(r"\([0-9]*:[0-9]*\)", "", text)
+
+    # remove iron man scores
+    text = re.sub(r"\[\d:\d]", "", text)
+
+    # remove rounds?
+    text = re.sub(r"\[Runde \d]", "", text)
+
+    # remove misc. annotations
+    annotations = (
+        " by referee's decision",
+        " by Count Out",
+        " - Time Limit Draw",
+        " - Double KO",
+        " - Double Count Out",
+        " - Double DQ",
+        " - No Contest",
+        " - TITLE CHANGE !!!",
+        "(c)",
+    )
+    for annotation in annotations:
+        text = text.replace(annotation, "")
+
+    return text
+
+
 def _parse_result(
     result: element.Tag,
 ) -> Tuple[List[Participant], List[Participant], bool]:
@@ -95,15 +126,7 @@ def _parse_result(
     winning_side, losing_side = [], []
     draw = False
 
-    # remove managers
-    result_text = re.sub(r"\(w/.*?\)", "", result_text)
-
-    # remove time
-    result_text = re.sub(r"\([0-9]*:[0-9]*\)", "", result_text)
-
-    # remove title change and champion annotation
-    result_text = result_text.replace(" - TITLE CHANGE !!!", "")
-    result_text = result_text.replace("(c)", "")
+    result_text = _erase_annotations(result_text)
 
     result_text = result_text.rstrip()
 
@@ -162,6 +185,7 @@ def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
         tag_text = item.text.strip()
         if tag_text.startswith(NAME_PREFIX):
             title = tag_text[len(NAME_PREFIX) :]
+            title = title.replace(":", "")
         if tag_text.startswith(DATE_PREFIX):
             date = datetime.datetime.strptime(tag_text[len(DATE_PREFIX) :], "%d.%m.%Y")
 
@@ -182,9 +206,9 @@ def parse_events(driver: webdriver.Chrome) -> List[Event]:
         be_gentle()
         parsed_event = _parse_event(driver, link)
         if parsed_event is not None:
-            # parsed_event.save_to_csv(Path("C:/Users/Paweł/Desktop/dumps"))
+            parsed_event.save_to_csv(Path("C:/Users/Paweł/Desktop/dumps"))
             events.append(parsed_event)
     return events
 
 
-# parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))
+parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))
