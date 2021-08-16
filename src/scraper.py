@@ -1,5 +1,6 @@
 import datetime
 import re
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup, element
@@ -181,8 +182,9 @@ def parse_events(driver: webdriver.Chrome) -> List[Event]:
         be_gentle()
         parsed_event = _parse_event(driver, link)
         if parsed_event is not None:
+            # parsed_event.save_to_csv(Path("C:/Users/Paweł/Desktop/dumps"))
             events.append(parsed_event)
     return events
 
 
-parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))
+# parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))

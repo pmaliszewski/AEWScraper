@@ -58,10 +58,12 @@ class Event:
             output = []
             for wrestler in side.split(","):
                 wrestler_info = wrestler.split(":")
+                if wrestler_info[1] == "None":
+                    participant_id = None
+                else:
+                    participant_id = int(wrestler_info[1])
                 output.append(
-                    Participant(
-                        name=wrestler_info[0], participant_id=int(wrestler_info[1])
-                    )
+                    Participant(name=wrestler_info[0], participant_id=participant_id)
                 )
             return output
 
@@ -70,20 +72,22 @@ class Event:
             for index, line in enumerate(f):
                 if index == 0:
                     title = line.rstrip()
-                if index == 1:
-                    date = datetime.datetime.strptime(line.rstrip(), "%d.%m.%Y")
+                elif index == 1:
+                    date = datetime.datetime.strptime(
+                        line.rstrip(), "%Y-%m-%d %H:%M:%S"
+                    )
                 else:
                     info = line.split(";")
                     stipulation = info[0]
                     draw = info[3] == "True"
                     winning_side = _split_participants(info[1])
                     losing_side = _split_participants(info[2])
-                matches.append(
-                    Match(
-                        stipulation=stipulation,
-                        winning_side=winning_side,
-                        losing_side=losing_side,
-                        draw=draw,
+                    matches.append(
+                        Match(
+                            stipulation=stipulation,
+                            winning_side=winning_side,
+                            losing_side=losing_side,
+                            draw=draw,
+                        )
                     )
-                )
         return Event(title=title, date=date, matches=matches)
