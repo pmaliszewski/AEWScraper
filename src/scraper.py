@@ -155,7 +155,7 @@ def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
     title, date = None, None
 
     driver.get(CAGEMATCH_SITE + event_link)
-    soup = BeautifulSoup(driver.page_source)
+    soup = BeautifulSoup(driver.page_source, features="lxml")
     info_box = soup.find_all("div", {"class": "InformationBoxRow"})
     for item in info_box:
         tag_text = item.text.strip()
@@ -185,4 +185,4 @@ def parse_events(driver: webdriver.Chrome) -> List[Event]:
     return events
 
 
-# parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))
+parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))

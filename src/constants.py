@@ -7,7 +7,7 @@ CAGEMATCH_SITE = "https://www.cagematch.net"
 LIST_OF_EVENTS_SITE = CAGEMATCH_SITE + "/?id=8&nr=2287&page=4&s={paging_id}"
 
 NAME_PREFIX = "Name of the event:"
-DATE_PREFIX = "Date:"
+DATE_PREFIX = "Broadcast date:"
 
 
 class UnknownMatchError(ValueError):
@@ -20,7 +20,7 @@ class Participant:
     participant_id: Optional[int] = None
 
     def __str__(self) -> str:
-        return f"{self.name};{self.participant_id})"
+        return f"{self.name}:{self.participant_id}"
 
 
 @dataclass
@@ -33,9 +33,9 @@ class Match:
     def __str__(self) -> str:
         return (
             f"{self.stipulation};"
-            f'{",".join(participant for participant in self.winning_side)};'
-            f'{",".join(participant for participant in self.losing_side)};'
-            f"{self.draw}"
+            f'{",".join(str(participant) for participant in self.winning_side)};'
+            f'{",".join(str(participant) for participant in self.losing_side)};'
+            f"{str(self.draw)}"
         )
 
 
@@ -47,10 +47,10 @@ class Event:
 
     def save_to_csv(self, path: Path) -> None:
         with open(path / f"{self.title}.csv", "w+") as f:
-            f.write(self.title)
-            f.write(str(self.date))
+            f.write(self.title + "\n")
+            f.write(str(self.date) + "\n")
             for match in self.matches:
-                f.write(str(match))
+                f.write(str(match) + "\n")
 
-    def create_from_csv(self) -> 'Event':
+    def create_from_csv(self) -> "Event":
         pass
