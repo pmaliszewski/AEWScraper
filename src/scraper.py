@@ -75,6 +75,16 @@ def _clean_up_side(side: str) -> List[str]:
     return output
 
 
+def _find_id(name: str, links: List[element.Tag]) -> Optional[int]:
+    for link in links:
+        if link.text == name:
+            href = link["href"]
+            nr_mark = "nr="
+            name_mark = "&name="
+            return int(href[href.find(nr_mark) + len(nr_mark) : href.find(name_mark)])
+    return None
+
+
 def _parse_result(
     result: element.Tag,
 ) -> Tuple[List[Participant], List[Participant], bool]:
@@ -83,7 +93,7 @@ def _parse_result(
     draw = False
 
     # remove managers
-    result_text = re.sub(r"\(w\.*\)", "", result_text)
+    result_text = re.sub(r"\(w/.*?\)", "", result_text)
 
     # remove time
     result_text = re.sub(r"\([0-9]*:[0-9]*\)", "", result_text)
@@ -107,8 +117,16 @@ def _parse_result(
     all_links = [link for link in result.find_all("a") if link.has_attr("href")]
 
     for i in range(2):
-        side = result_text[i]
-        pass
+        side = _clean_up_side(result_text[i])
+        for wrestler_name in side:
+            wrestler_id = _find_id(wrestler_name, all_links)
+            wrestler = Participant(name=wrestler_name, participant_id=wrestler_id)
+            if i == 0:
+                winning_side.append(wrestler)
+            else:
+                losing_side.append(wrestler)
+
+    return winning_side, losing_side, draw
 
 
 def _parse_match(match: element.Tag) -> Match:
@@ -123,7 +141,12 @@ def _parse_match(match: element.Tag) -> Match:
             losing_side=None,
         )
 
-    print(result)
+    return Match(
+        stipulation=stipulation,
+        winning_side=parsed_result[0],
+        losing_side=parsed_result[1],
+        draw=parsed_result[2],
+    )
 
 
 def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:

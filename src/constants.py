@@ -16,8 +16,10 @@ class UnknownMatchError(ValueError):
 @dataclass
 class Participant:
     name: str
-    id: Optional[int] = None
+    participant_id: Optional[int] = None
 
+    def __str__(self) -> str:
+        return f'{self.name} (id: {self.participant_id})'
 
 @dataclass
 class Match:
