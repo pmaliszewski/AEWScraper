@@ -52,5 +52,38 @@ class Event:
             for match in self.matches:
                 f.write(str(match) + "\n")
 
-    def create_from_csv(self) -> "Event":
-        pass
+    @classmethod
+    def create_from_csv(cls, path: Path) -> "Event":
+        def _split_participants(side: str) -> List[Participant]:
+            output = []
+            for wrestler in side.split(","):
+                wrestler_info = wrestler.split(":")
+                output.append(
+                    Participant(
+                        name=wrestler_info[0], participant_id=int(wrestler_info[1])
+                    )
+                )
+            return output
+
+        title, date, matches = None, None, []
+        with open(path) as f:
+            for index, line in enumerate(f):
+                if index == 0:
+                    title = line.rstrip()
+                if index == 1:
+                    date = datetime.datetime.strptime(line.rstrip(), "%d.%m.%Y")
+                else:
+                    info = line.split(";")
+                    stipulation = info[0]
+                    draw = info[3] == "True"
+                    winning_side = _split_participants(info[1])
+                    losing_side = _split_participants(info[2])
+                matches.append(
+                    Match(
+                        stipulation=stipulation,
+                        winning_side=winning_side,
+                        losing_side=losing_side,
+                        draw=draw,
+                    )
+                )
+        return Event(title=title, date=date, matches=matches)
