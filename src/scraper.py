@@ -15,6 +15,7 @@ from constants import (
     UnknownMatchError,
     Participant,
 )
+from utils import be_gentle
 
 
 def _parse_table(soup: BeautifulSoup) -> List[str]:
@@ -34,6 +35,7 @@ def _grab_event_links(driver: webdriver.Chrome) -> List[str]:
     paging_id = 0
     event_links = []
     while True:
+        be_gentle()
         driver.get(LIST_OF_EVENTS_SITE.format(paging_id=paging_id))
         soup = BeautifulSoup(driver.page_source, "lxml")
         found_links = _parse_table(soup)
@@ -173,9 +175,10 @@ def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
 
 
 def parse_events(driver: webdriver.Chrome) -> List[Event]:
-    links = _grab_event_links(driver)[20:]
+    links = _grab_event_links(driver)
     events = []
     for link in links:
+        be_gentle()
         parsed_event = _parse_event(driver, link)
         if parsed_event is not None:
             events.append(parsed_event)

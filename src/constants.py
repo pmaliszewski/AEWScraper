@@ -1,5 +1,6 @@
 import datetime
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
 
 CAGEMATCH_SITE = "https://www.cagematch.net"
@@ -19,7 +20,8 @@ class Participant:
     participant_id: Optional[int] = None
 
     def __str__(self) -> str:
-        return f'{self.name} (id: {self.participant_id})'
+        return f"{self.name};{self.participant_id})"
+
 
 @dataclass
 class Match:
@@ -28,9 +30,27 @@ class Match:
     losing_side: Optional[List[Participant]]
     draw: bool = False
 
+    def __str__(self) -> str:
+        return (
+            f"{self.stipulation};"
+            f'{",".join(participant for participant in self.winning_side)};'
+            f'{",".join(participant for participant in self.losing_side)};'
+            f"{self.draw}"
+        )
+
 
 @dataclass
 class Event:
     title: str
     date: datetime.datetime
     matches: List[Match]
+
+    def save_to_csv(self, path: Path) -> None:
+        with open(path / f"{self.title}.csv", "w+") as f:
+            f.write(self.title)
+            f.write(str(self.date))
+            for match in self.matches:
+                f.write(str(match))
+
+    def create_from_csv(self) -> 'Event':
+        pass
