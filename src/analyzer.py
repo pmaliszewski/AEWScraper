@@ -1,7 +1,10 @@
+from pathlib import Path
 from typing import List, Set
 
+import pandas as pd
+
 from constants import Event, Wrestler
-from utils import find_same_ids
+from utils import find_same_ids, create_list_of_events
 
 
 def _clean_up_wrestler_references(events: List[Event]) -> List[Event]:
@@ -52,3 +55,9 @@ def _merge_same_ids(events: List[Event]) -> List[Event]:
                     if wrestler.wrestler_id == k and wrestler.name != common_name:
                         wrestler.name = common_name
     return events
+
+
+def analyze(path: Path) -> pd.DataFrame:
+    events = _clean_up_wrestler_references(
+        _sort_by_date(_merge_same_ids(create_list_of_events(path)))
+    )
