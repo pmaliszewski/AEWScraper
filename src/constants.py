@@ -15,36 +15,36 @@ class UnknownMatchError(ValueError):
 
 
 @dataclass
-class Participant:
+class Wrestler:
     name: str
-    participant_id: Optional[int] = None
+    wrestler_id: Optional[int] = None
 
     def __str__(self) -> str:
-        return f"{self.name}:{self.participant_id}"
+        return f"{self.name}:{self.wrestler_id}"
 
     def __hash__(self):
-        if self.participant_id is None:
+        if self.wrestler_id is None:
             return hash(self.name) * 10000
-        return self.participant_id
+        return self.wrestler_id
 
-    def __eq__(self, other: "Participant"):
-        if self.participant_id is None and other.participant_id is None:
+    def __eq__(self, other: "Wrestler"):
+        if self.wrestler_id is None and other.wrestler_id is None:
             return self.name == other.name
-        return self.participant_id == other.participant_id
+        return self.wrestler_id == other.wrestler_id
 
 
 @dataclass
 class Match:
     stipulation: str
-    winning_side: Optional[List[Participant]]
-    losing_side: Optional[List[Participant]]
+    winning_side: Optional[List[Wrestler]]
+    losing_side: Optional[List[Wrestler]]
     draw: bool = False
 
     def __str__(self) -> str:
         return (
             f"{self.stipulation};"
-            f'{",".join(str(participant) for participant in self.winning_side)};'
-            f'{",".join(str(participant) for participant in self.losing_side)};'
+            f'{",".join(str(wrestler) for wrestler in self.winning_side)};'
+            f'{",".join(str(wrestler) for wrestler in self.losing_side)};'
             f"{str(self.draw)}"
         )
 
@@ -64,17 +64,15 @@ class Event:
 
     @classmethod
     def create_from_csv(cls, path: Path) -> "Event":
-        def _split_participants(side: str) -> List[Participant]:
+        def _split_wrestlers(side: str) -> List[Wrestler]:
             output = []
             for wrestler in side.split(","):
                 wrestler_info = wrestler.split(":")
                 if wrestler_info[1] == "None":
-                    participant_id = None
+                    wrestler_id = None
                 else:
-                    participant_id = int(wrestler_info[1])
-                output.append(
-                    Participant(name=wrestler_info[0], participant_id=participant_id)
-                )
+                    wrestler_id = int(wrestler_info[1])
+                output.append(Wrestler(name=wrestler_info[0], wrestler_id=wrestler_id))
             return output
 
         title, date, matches = None, None, []
@@ -90,8 +88,8 @@ class Event:
                     info = line.split(";")
                     stipulation = info[0]
                     draw = info[3] == "True"
-                    winning_side = _split_participants(info[1])
-                    losing_side = _split_participants(info[2])
+                    winning_side = _split_wrestlers(info[1])
+                    losing_side = _split_wrestlers(info[2])
                     matches.append(
                         Match(
                             stipulation=stipulation,

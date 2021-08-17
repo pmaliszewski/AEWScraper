@@ -14,7 +14,7 @@ from constants import (
     DATE_PREFIX,
     Match,
     UnknownMatchError,
-    Participant,
+    Wrestler,
 )
 from utils import be_gentle
 
@@ -121,7 +121,7 @@ def _erase_annotations(text: str) -> str:
 
 def _parse_result(
     result: element.Tag,
-) -> Tuple[List[Participant], List[Participant], bool]:
+) -> Tuple[List[Wrestler], List[Wrestler], bool]:
     result_text = result.text
     winning_side, losing_side = [], []
     draw = False
@@ -146,7 +146,7 @@ def _parse_result(
         side = _clean_up_side(result_text[i])
         for wrestler_name in side:
             wrestler_id = _find_id(wrestler_name, all_links)
-            wrestler = Participant(name=wrestler_name, participant_id=wrestler_id)
+            wrestler = Wrestler(name=wrestler_name, wrestler_id=wrestler_id)
             if i == 0:
                 winning_side.append(wrestler)
             else:
@@ -199,16 +199,14 @@ def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
     return Event(title=title, date=date, matches=matches)
 
 
-def parse_events(driver: webdriver.Chrome) -> List[Event]:
+def parse_events(driver: webdriver.Chrome, path_to_save: Optional[Path]) -> List[Event]:
     links = _grab_event_links(driver)
     events = []
     for link in links:
         be_gentle()
         parsed_event = _parse_event(driver, link)
         if parsed_event is not None:
-            parsed_event.save_to_csv(Path("C:/Users/Paweł/Desktop/dumps"))
+            if path_to_save:
+                parsed_event.save_to_csv(Path("C:/Users/Paweł/Desktop/dumps"))
             events.append(parsed_event)
     return events
-
-
-parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"))

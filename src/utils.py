@@ -1,10 +1,9 @@
 import glob
 import time
 from pathlib import Path
-from pprint import pprint
 from typing import List, Dict, Set
 
-from constants import Event
+from constants import Event, Wrestler
 
 
 def be_gentle():
@@ -18,24 +17,13 @@ def create_list_of_events(path: Path) -> List[Event]:
     return events
 
 
-def get_all_wrestlers(path: Path, to_print: bool) -> Dict[str, List[str]]:
-    wrestlers = {}
-    events = create_list_of_events(path)
+def get_all_wrestlers(events: List[Event]) -> Set[Wrestler]:
+    wrestlers = set()
     for event in events:
         for match in event.matches:
             for wrestler in match.losing_side + match.winning_side:
-                if wrestler.name in wrestlers:
-                    wrestlers[wrestler.name].append(event.title)
-                else:
-                    wrestlers[wrestler.name] = [event.title]
-    if to_print:
-        pprint(set(wrestlers))
+                wrestlers.add(wrestler)
     return wrestlers
-
-
-def get_single_wrestler(name: str, path: Path) -> List[str]:
-    wrestlers = get_all_wrestlers(path, False)
-    return wrestlers.get(name, None)
 
 
 def find_same_ids(events: List[Event]) -> Dict[int, Set[str]]:
@@ -43,8 +31,8 @@ def find_same_ids(events: List[Event]) -> Dict[int, Set[str]]:
     for event in events:
         for match in event.matches:
             for wrestler in match.losing_side + match.winning_side:
-                if wrestler.participant_id in ids_to_name:
-                    ids_to_name[wrestler.participant_id].add(wrestler.name)
+                if wrestler.wrestler_id in ids_to_name:
+                    ids_to_name[wrestler.wrestler_id].add(wrestler.name)
                 else:
-                    ids_to_name[wrestler.participant_id] = {wrestler.name}
+                    ids_to_name[wrestler.wrestler_id] = {wrestler.name}
     return {k: v for k, v in ids_to_name.items() if len(v) > 1 and k is not None}
