@@ -22,6 +22,16 @@ class Participant:
     def __str__(self) -> str:
         return f"{self.name}:{self.participant_id}"
 
+    def __hash__(self):
+        if self.participant_id is None:
+            return hash(self.name) * 10000
+        return self.participant_id
+
+    def __eq__(self, other: "Participant"):
+        if self.participant_id is None and other.participant_id is None:
+            return self.name == other.name
+        return self.participant_id == other.participant_id
+
 
 @dataclass
 class Match:
