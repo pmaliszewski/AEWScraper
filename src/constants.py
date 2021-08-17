@@ -20,7 +20,7 @@ class Wrestler:
     wrestler_id: Optional[int] = None
 
     def __str__(self) -> str:
-        return f"{self.name}:{self.wrestler_id}"
+        return f"{self.name}"
 
     def __hash__(self):
         if self.wrestler_id is None:

@@ -7,13 +7,10 @@ class Elo:
     def __init__(self, wrestlers: Set[Wrestler]) -> None:
         self.wrestlers_to_rating = {k: 1500 for k in wrestlers}
 
-    def add_wrestler(self, wrestler: Wrestler, rating: int = 1500) -> None:
-        self.wrestlers_to_rating[wrestler] = rating
-
     def update_rating(
         self, winners: List[Wrestler], losers: List[Wrestler], draw: bool
     ) -> None:
-        k = 12 if len(losers) > len(winners) else 20
+        k = 12 if len(losers) > len(winners) else 32
         winners_elo = sum(self.wrestlers_to_rating[winner] for winner in winners) / len(
             winners
         )
