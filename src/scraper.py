@@ -202,7 +202,7 @@ def _parse_event(driver: webdriver.Chrome, event_link: str) -> Optional[Event]:
 def parse_events(driver: webdriver.Chrome, path_to_save: Optional[Path]) -> List[Event]:
     links = _grab_event_links(driver)
     events = []
-    for link in links:
+    for link in links[18:50]:
         be_gentle()
         parsed_event = _parse_event(driver, link)
         if parsed_event is not None:
@@ -210,3 +210,5 @@ def parse_events(driver: webdriver.Chrome, path_to_save: Optional[Path]) -> List
                 parsed_event.save_to_csv(Path("C:/Users/Paweł/Desktop/dumps"))
             events.append(parsed_event)
     return events
+
+parse_events(webdriver.Chrome("C:/chromedriver/chromedriver.exe"), Path("C:/Users/Paweł/Desktop/dumps"))

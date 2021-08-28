@@ -22,14 +22,14 @@ class Elo:
 
         if draw:
             for wrestler in winners + losers:
-                self.wrestlers_to_rating[wrestler] += k * expected_result
+                self.wrestlers_to_rating[wrestler] += round(k * expected_result)
             return
 
         for winner in winners:
-            self.wrestlers_to_rating[winner] += k * (1 - expected_result)
+            self.wrestlers_to_rating[winner] += round(k * (1 - expected_result))
 
         for loser in losers:
-            self.wrestlers_to_rating[loser] += k * (expected_result - 1)
+            self.wrestlers_to_rating[loser] += round(k * (expected_result - 1))
 
     @staticmethod
     def expected_result(first: Union[int, float], second: Union[int, float]) -> float:

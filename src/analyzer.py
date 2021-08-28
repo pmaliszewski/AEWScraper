@@ -60,7 +60,7 @@ def _merge_same_ids(events: List[Event]) -> List[Event]:
     return events
 
 
-def analyze(path: Path, to_save: bool = False) -> pd.DataFrame:
+def analyze(path: Path, to_save: Path = None) -> pd.DataFrame:
     events = _clean_up_wrestler_references(
         _sort_by_date(_merge_same_ids(create_list_of_events(path)))
     )
@@ -76,6 +76,8 @@ def analyze(path: Path, to_save: bool = False) -> pd.DataFrame:
         for match in event.matches:
             elo.update_rating(match.winning_side, match.losing_side, match.draw)
         df[date] = pd.Series(elo.wrestlers_to_rating)
+
+    df = df.transpose()
 
     if to_save:
         df.to_csv(str(path / "results.csv"))
